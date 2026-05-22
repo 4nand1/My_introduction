@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Content {
+  id      String @id @default("main")
+  hero    Json   @default("{}")
+  contact Json   @default("{}")
+}
+
+model Project {
+  id          String  @id
+  title       String
+  subtitle    String
+  year        String
+  description String
+  tags        String
+  live        String  @default("")
+  repo        String  @default("")
+  order       Int     @default(0)
+}
+
+model MemoryCaption {
+  filename String @id
+  caption  String
+}

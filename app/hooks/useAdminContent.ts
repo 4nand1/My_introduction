@@ -7,7 +7,7 @@ export function useAdminContent<T>(defaults: T, key: string): T {
   const [value, setValue] = useState<T>(defaults);
 
   useEffect(() => {
-    fetch("/admin-content.json", { cache: "no-store" })
+    fetch("/api/admin", { cache: "no-store" })
       .then(r => r.json())
       .then(data => {
         if (data[key]) setValue({ ...defaults, ...data[key] });

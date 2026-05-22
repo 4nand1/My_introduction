@@ -6,14 +6,14 @@ import { motion } from "framer-motion";
 import { useAdminContent } from "../hooks/useAdminContent";
 
 const HERO_DEFAULTS = {
-  name: "Anand",
-  title: "Full-Stack Developer",
-  bio: "I build fast, purposeful products. My background in competitive gaming taught me to think under pressure — now I channel that into writing clean, efficient code that ships.",
-  tagline: "Strategy → Logic → Scalable Code.",
-  location: "Mongolia",
-  stat1Value: "2×",  stat1Label: "Hackathons",
-  stat2Value: "15+", stat2Label: "Projects",
-  stat3Value: "17",  stat3Label: "Years Old",
+  name: "",
+  title: "",
+  bio: "",
+  tagline: "",
+  location: "",
+  stat1Value: "", stat1Label: "",
+  stat2Value: "", stat2Label: "",
+  stat3Value: "", stat3Label: "",
 };
 
 const techTags = ["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL"];
