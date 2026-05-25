@@ -7,9 +7,12 @@ datasource db {
 }
 
 model Content {
-  id      String @id @default("main")
-  hero    Json   @default("{}")
-  contact Json   @default("{}")
+  id       String @id @default("main")
+  hero     Json   @default("{}")
+  contact  Json   @default("{}")
+  skills   Json   @default("{}")
+  timeline Json   @default("{}")
+  now      Json   @default("{}")
 }
 
 model Project {
@@ -27,4 +30,13 @@ model Project {
 model MemoryCaption {
   filename String @id
   caption  String
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  body      String
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
 }

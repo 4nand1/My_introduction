@@ -1,51 +1,37 @@
-"use client";
-
-import { motion } from "framer-motion";
-
-const links = [
-  { label: "Work", href: "#work" },
-  { label: "Stack", href: "#stack" },
-  { label: "Journey", href: "#journey" },
-  { label: "Contact", href: "#contact" },
-];
-
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="border-t border-[#141414] px-6 md:px-16 py-10 max-w-6xl mx-auto w-full">
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="flex flex-col sm:flex-row items-center justify-between gap-6"
-      >
-        <div className="flex items-center gap-3">
-          <a href="#" className="text-sm font-bold text-white hover:text-lime-400 transition-colors">
-            Anand
+    <footer className="border-t border-white/[0.05] py-10">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+
+        <div className="flex items-center gap-5">
+          <a href="#" className="font-mono text-sm font-bold text-[#eceae3] hover:text-[#6d63ff] transition-colors duration-300">
+            anand<span className="text-[#6d63ff]">.</span>
           </a>
-          <span className="flex items-center gap-1.5 text-xs font-mono text-lime-400/70">
-            <span className="w-1.5 h-1.5 rounded-full bg-lime-400 glow-dot" />
-            Available
+          <span className="font-mono text-[10px] text-[#1e1c28]">·</span>
+          <span className="font-mono text-[10px] text-[#2e2c38] tracking-wider">
+            built in <span className="text-[#56545e]">Улаанбаатар</span>, hosted on Vercel
           </span>
         </div>
 
-        <ul className="flex gap-5">
-          {links.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                className="text-xs font-mono text-neutral-700 hover:text-neutral-400 transition-colors tracking-wide"
-              >
-                {link.label}
-              </a>
-            </li>
+        <nav className="flex flex-wrap gap-5">
+          {[["#now","Now"],["#work","Work"],["#stack","Stack"],["#journey","Journey"],["#contact","Contact"]].map(([href, label]) => (
+            <a
+              key={href}
+              href={href}
+              className="font-mono text-[11px] text-[#2e2c38] hover:text-[#a09cff] transition-colors duration-300 tracking-widest"
+            >
+              {label}
+            </a>
           ))}
-        </ul>
+        </nav>
 
-        <p className="text-xs font-mono text-neutral-800 tracking-wide">
-          © 2026 Anand — Built with Next.js
-        </p>
-      </motion.div>
+        <div className="flex items-center gap-4">
+          <kbd className="font-mono text-[9px] text-[#2e2c38] border border-white/[0.06] rounded px-1.5 py-0.5 tracking-wider">⌘K</kbd>
+          <p className="font-mono text-[10px] text-[#2e2c38]">© {year} Anand</p>
+        </div>
+      </div>
     </footer>
   );
 }

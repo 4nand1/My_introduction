@@ -1,153 +1,216 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAdminContent } from "../hooks/useAdminContent";
 
 const CONTACT_DEFAULTS = {
   email: "404aarhal@gmail.com",
   github: "https://github.com/4nand1",
   linkedin: "https://linkedin.com/in/anand",
+  blurb: "I read every email. If it's interesting, I'll reply faster than you'd expect.",
 };
+
+type State = "idle" | "sending" | "sent" | "error";
 
 export default function Contact() {
   const c = useAdminContent(CONTACT_DEFAULTS, "contact");
-  const socials = [
-    { label: "Email",    value: c.email,                           href: `mailto:${c.email}` },
-    { label: "GitHub",   value: c.github.replace("https://", ""), href: c.github },
-    { label: "LinkedIn", value: c.linkedin.replace("https://", ""), href: c.linkedin },
-  ];
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [body, setBody] = useState("");
+  const [state, setState] = useState<State>("idle");
+  const [err, setErr] = useState<string | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // wire to your API route / Resend / Formspree here
-    await new Promise((r) => setTimeout(r, 800));
-    setSent(true);
-    setLoading(false);
+    setState("sending");
+    setErr(null);
+    try {
+      const r = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, body }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || "Failed to send.");
+      setState("sent");
+      setName(""); setEmail(""); setBody("");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Something went wrong.";
+      setErr(msg);
+      setState("error");
+    }
   };
 
   return (
-    <section id="contact" className="px-6 md:px-16 py-28 max-w-6xl mx-auto w-full">
-      {/* section header */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
-        className="mb-14 space-y-2"
-      >
-        <p className="font-mono text-lime-400/60 text-xs tracking-[0.18em]">// 04 CONTACT</p>
-        <h2 className="text-4xl font-bold text-white tracking-tight">Let&apos;s work together.</h2>
-        <p className="text-neutral-600 text-sm">
-          Open to projects, collaborations, and full-time roles.{" "}
-          <span className="text-lime-400/70">Usually responds within 24h.</span>
-        </p>
-      </motion.div>
+    <section id="contact" className="py-32 relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute bottom-[-20%] left-[30%] w-[60vw] h-[60vw] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(109,99,255,0.06) 0%, transparent 65%)" }} />
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-8">
-        {/* ── Socials ── */}
+      <div className="relative max-w-[1400px] mx-auto px-6 md:px-12">
+
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -16 }}
+          whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.55, delay: 0.1, ease: "easeOut" }}
-          className="space-y-4"
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-4 mb-20"
         >
-          {socials.map((s, i) => (
-            <motion.a
-              key={s.label}
-              href={s.href}
-              target={s.href.startsWith("http") ? "_blank" : undefined}
-              rel={s.href.startsWith("http") ? "noopener noreferrer" : undefined}
-              initial={{ opacity: 0, x: -10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.15 + i * 0.07 }}
-              whileHover={{ x: 4 }}
-              className="flex items-center gap-4 border border-white/[0.07] hover:border-lime-400/20 rounded-xl px-5 py-4 bg-white/[0.03] group transition-colors"
-            >
-              <span className="text-[10px] font-mono text-neutral-700 w-20 tracking-wider shrink-0">{s.label}</span>
-              <span className="text-sm text-neutral-400 group-hover:text-lime-400 transition-colors">{s.value}</span>
-            </motion.a>
-          ))}
-
-          <p className="text-neutral-800 text-xs font-mono italic pt-4 leading-relaxed">
-            &ldquo;The best code is the code that solves a real problem.&rdquo;
-          </p>
+          <span className="text-[#6d63ff] font-mono text-[11px] tracking-[0.2em] uppercase">Contact</span>
+          <div className="h-px flex-1 bg-gradient-to-r from-[#6d63ff]/30 to-transparent" />
         </motion.div>
 
-        {/* ── Contact form ── */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.55, delay: 0.15, ease: "easeOut" }}
-          className="relative border border-white/[0.07] rounded-2xl p-7 bg-white/[0.03] overflow-hidden"
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="relative rounded-3xl border border-white/[0.07] overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #0d0d17 0%, #0f0d1a 100%)" }}
         >
-          <div className="pointer-events-none absolute top-0 right-0 w-48 h-48 bg-lime-400/[0.03] rounded-full blur-3xl -translate-y-1/3 translate-x-1/3" />
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#6d63ff]/50 to-transparent" />
+          <div className="pointer-events-none absolute top-[-30%] right-[-10%] w-[50%] h-[200%] rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(109,99,255,0.06) 0%, transparent 65%)" }} />
 
-          {sent ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center h-full py-12 text-center space-y-3"
-            >
-              <div className="w-12 h-12 rounded-full bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
-                <svg className="w-5 h-5 text-lime-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <p className="text-white font-semibold">Message sent!</p>
-              <p className="text-neutral-600 text-sm">I&apos;ll get back to you soon.</p>
-            </motion.div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {[
-                { id: "name", label: "Name", type: "text", placeholder: "Your name" },
-                { id: "email", label: "Email", type: "email", placeholder: "your@email.com" },
-              ].map((field) => (
-                <div key={field.id}>
-                  <label className="block text-xs font-mono text-neutral-600 mb-1.5 tracking-wider">
-                    {field.label}
-                  </label>
-                  <input
-                    type={field.type}
-                    required
-                    placeholder={field.placeholder}
-                    value={form[field.id as keyof typeof form]}
-                    onChange={(e) => setForm({ ...form, [field.id]: e.target.value })}
-                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-neutral-200 placeholder:text-neutral-700 focus:outline-none focus:border-lime-400/30 transition-colors"
-                  />
+          <div className="relative p-10 md:p-14 grid grid-cols-1 md:grid-cols-[1fr_1.1fr] gap-12 items-start">
+
+            {/* Left — pitch + direct links */}
+            <div>
+              <motion.h2
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="font-bold tracking-tighter leading-[1.05] text-[#eceae3] mb-5"
+                style={{ fontSize: "clamp(2.25rem, 4.2vw, 4rem)" }}
+              >
+                Send me<br />
+                <span style={{
+                  background: "linear-gradient(120deg, #6d63ff, #a09cff)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}>
+                  a real message.
+                </span>
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="font-mono text-[13px] text-[#56545e] leading-relaxed mb-8 max-w-sm"
+              >
+                {c.blurb}
+              </motion.p>
+
+              <div className="space-y-3">
+                <a href={`mailto:${c.email}`} className="block group">
+                  <p className="font-mono text-[10px] text-[#2e2c38] tracking-widest uppercase mb-0.5">Email</p>
+                  <p className="font-mono text-sm text-[#eceae3] group-hover:text-[#a09cff] transition-colors duration-300">
+                    {c.email}
+                  </p>
+                </a>
+                <div className="flex gap-5 pt-2">
+                  <a href={c.github} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-[#56545e] hover:text-[#eceae3] transition-colors">
+                    GitHub ↗
+                  </a>
+                  <a href={c.linkedin} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-[#56545e] hover:text-[#eceae3] transition-colors">
+                    LinkedIn ↗
+                  </a>
                 </div>
-              ))}
+              </div>
+            </div>
+
+            {/* Right — real working form */}
+            <motion.form
+              onSubmit={submit}
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-4 relative"
+            >
+              <AnimatePresence>
+                {state === "sent" && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-[#0d0d17] border border-[#6d63ff]/30 p-8 text-center"
+                  >
+                    <span className="text-3xl mb-3">◆</span>
+                    <p className="text-[#eceae3] text-base font-medium mb-1.5">Message sent.</p>
+                    <p className="font-mono text-xs text-[#56545e] leading-relaxed max-w-xs">
+                      I&apos;ll get back to you soon. Usually within a day.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setState("idle")}
+                      className="mt-5 font-mono text-[11px] text-[#6d63ff] border border-[#6d63ff]/30 rounded-full px-4 py-1.5 hover:bg-[#6d63ff]/10 transition"
+                    >
+                      Send another →
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div>
-                <label className="block text-xs font-mono text-neutral-600 mb-1.5 tracking-wider">
-                  Message
-                </label>
-                <textarea
+                <label className="block font-mono text-[10px] text-[#2e2c38] tracking-widest uppercase mb-2">Your name</label>
+                <input
+                  type="text"
                   required
-                  rows={4}
-                  placeholder="What are you working on?"
-                  value={form.message}
-                  onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-neutral-200 placeholder:text-neutral-700 focus:outline-none focus:border-lime-400/30 transition-colors resize-none"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Anand Bayar"
+                  className="w-full bg-white/[0.02] border border-white/[0.07] focus:border-[#6d63ff]/40 rounded-xl px-4 py-3 text-sm text-[#eceae3] placeholder:text-[#2e2c38] outline-none transition-colors"
                 />
               </div>
-              <motion.button
+
+              <div>
+                <label className="block font-mono text-[10px] text-[#2e2c38] tracking-widest uppercase mb-2">Your email</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@somewhere.com"
+                  className="w-full bg-white/[0.02] border border-white/[0.07] focus:border-[#6d63ff]/40 rounded-xl px-4 py-3 text-sm text-[#eceae3] placeholder:text-[#2e2c38] outline-none transition-colors font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-[#2e2c38] tracking-widest uppercase mb-2">Message</label>
+                <textarea
+                  required
+                  value={body}
+                  onChange={e => setBody(e.target.value)}
+                  rows={5}
+                  placeholder="Tell me what you're working on, or just say hi."
+                  className="w-full bg-white/[0.02] border border-white/[0.07] focus:border-[#6d63ff]/40 rounded-xl px-4 py-3 text-sm text-[#eceae3] placeholder:text-[#2e2c38] outline-none transition-colors resize-none leading-relaxed"
+                />
+              </div>
+
+              {err && (
+                <p className="font-mono text-[11px] text-rose-400/80">{err}</p>
+              )}
+
+              <button
                 type="submit"
-                disabled={loading}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                className="w-full py-3 rounded-xl bg-lime-400 text-black font-bold text-sm hover:bg-lime-300 transition-colors disabled:opacity-60 shadow-[0_0_24px_rgba(163,230,53,0.15)]"
+                disabled={state === "sending"}
+                className="w-full font-mono text-xs text-white bg-[#6d63ff] hover:bg-[#5d54e6] disabled:opacity-50 rounded-xl px-7 py-3.5 font-semibold shadow-[0_0_30px_rgba(109,99,255,0.3)] hover:shadow-[0_0_40px_rgba(109,99,255,0.5)] transition-all duration-300"
               >
-                {loading ? "Sending..." : "Send Message →"}
-              </motion.button>
-            </form>
-          )}
+                {state === "sending" ? "Sending..." : "Send Message →"}
+              </button>
+
+              <p className="font-mono text-[10px] text-[#2e2c38] text-center">
+                No spam tracking. Just an inbox.
+              </p>
+            </motion.form>
+          </div>
         </motion.div>
       </div>
     </section>

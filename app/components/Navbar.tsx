@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 const links = [
+  { label: "Now", href: "#now" },
   { label: "Work", href: "#work" },
   { label: "Stack", href: "#stack" },
   { label: "Journey", href: "#journey" },
@@ -11,90 +12,53 @@ const links = [
 ];
 
 export default function Navbar() {
-  const [active, setActive] = useState("");
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    const ids = links.map((l) => l.href.slice(1));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActive(entry.target.id);
-        }
-      },
-      { rootMargin: "-40% 0px -55% 0px" }
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <motion.div
-      initial={{ y: -40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed top-5 left-0 right-0 z-50 flex justify-center px-4"
+    <motion.header
+      initial={{ opacity: 0, y: -12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-[#06060b]/85 backdrop-blur-xl border-b border-white/[0.05] shadow-[0_0_60px_rgba(109,99,255,0.05)]"
+          : ""
+      }`}
     >
-      <nav
-        className={`flex items-center gap-1 px-3 py-2 rounded-full border transition-all duration-300 ${
-          scrolled
-            ? "border-white/[0.1] bg-[#0c0c0f]/90 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
-            : "border-white/[0.06] bg-white/[0.02] backdrop-blur-xl"
-        }`}
-      >
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-5 flex items-center justify-between">
         <a
           href="#"
-          className="text-sm font-bold text-white px-3 py-1.5 hover:text-lime-400 transition-colors mr-1"
+          className="font-mono text-sm font-bold text-[#eceae3] tracking-tight hover:text-[#6d63ff] transition-colors duration-300"
         >
-          Anand
+          anand<span className="text-[#6d63ff]">.</span>
         </a>
 
-        <div className="w-px h-4 bg-[#2a2a2a]" />
-
-        <ul className="flex items-center gap-0.5 ml-1">
-          {links.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                className={`relative text-xs px-3 py-1.5 rounded-full transition-colors font-mono tracking-wide ${
-                  active === link.href.slice(1)
-                    ? "text-white"
-                    : "text-neutral-500 hover:text-neutral-200"
-                }`}
-              >
-                {active === link.href.slice(1) && (
-                  <motion.span
-                    layoutId="nav-active"
-                    className="absolute inset-0 rounded-full bg-[#181818]"
-                    style={{ zIndex: -1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                  />
-                )}
-                {link.label}
-              </a>
-            </li>
+        <nav className="hidden md:flex items-center gap-8">
+          {links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="font-mono text-[11px] text-[#56545e] hover:text-[#eceae3] transition-colors duration-300 tracking-widest uppercase"
+            >
+              {l.label}
+            </a>
           ))}
-        </ul>
-
-        <div className="w-px h-4 bg-[#2a2a2a] ml-1" />
+        </nav>
 
         <a
           href="#contact"
-          className="ml-1 flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-full bg-lime-400 text-black font-bold hover:bg-lime-300 transition-colors"
+          className="relative font-mono text-xs text-[#6d63ff] border border-[#6d63ff]/40 rounded-full px-5 py-2.5 overflow-hidden group transition-all duration-300 hover:border-[#6d63ff] hover:shadow-[0_0_20px_rgba(109,99,255,0.25)]"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-black/40 glow-dot" />
-          Let&apos;s Talk
+          <span className="relative z-10 group-hover:text-white transition-colors duration-300">Hire me →</span>
+          <span className="absolute inset-0 bg-[#6d63ff] translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full" />
         </a>
-      </nav>
-    </motion.div>
+      </div>
+    </motion.header>
   );
 }

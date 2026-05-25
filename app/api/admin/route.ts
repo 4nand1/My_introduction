@@ -21,6 +21,9 @@ export async function GET() {
     return NextResponse.json({
       hero: content?.hero ?? {},
       contact: content?.contact ?? {},
+      skills: content?.skills ?? {},
+      timeline: content?.timeline ?? {},
+      now: content?.now ?? {},
       projects,
       memoryCaptions,
     });
@@ -38,22 +41,23 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { hero, contact, projects, memoryCaptions } = content;
+    const { hero, contact, skills, timeline, now, projects, memoryCaptions } = content;
 
     await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Save hero + contact
-      if (hero !== undefined || contact !== undefined) {
+      if (hero !== undefined || contact !== undefined || skills !== undefined || timeline !== undefined || now !== undefined) {
         await tx.content.upsert({
           where: { id: "main" },
-          create: { id: "main", hero: hero ?? {}, contact: contact ?? {} },
+          create: { id: "main", hero: hero ?? {}, contact: contact ?? {}, skills: skills ?? {}, timeline: timeline ?? {}, now: now ?? {} },
           update: {
             ...(hero !== undefined && { hero }),
             ...(contact !== undefined && { contact }),
+            ...(skills !== undefined && { skills }),
+            ...(timeline !== undefined && { timeline }),
+            ...(now !== undefined && { now }),
           },
         });
       }
 
-      // Replace all projects
       if (Array.isArray(projects)) {
         await tx.project.deleteMany();
         if (projects.length > 0) {
@@ -73,7 +77,6 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Upsert memory captions
       if (memoryCaptions && typeof memoryCaptions === "object") {
         for (const [filename, caption] of Object.entries(memoryCaptions)) {
           if (caption) {

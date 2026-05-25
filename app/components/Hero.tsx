@@ -1,250 +1,281 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { useAdminContent } from "../hooks/useAdminContent";
 
-const HERO_DEFAULTS = {
-  name: "",
-  title: "",
-  bio: "",
-  tagline: "",
-  location: "",
-  stat1Value: "", stat1Label: "",
-  stat2Value: "", stat2Label: "",
-  stat3Value: "", stat3Label: "",
-};
-
-const techTags = ["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL"];
-
-const charContainer = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06, delayChildren: 0.35 } },
-};
-
-const charItem = {
-  hidden: { opacity: 0, y: 40 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" as const },
-  },
-};
-
-export default function Hero() {
-  const [hasPhoto, setHasPhoto] = useState(true);
-  const h = useAdminContent(HERO_DEFAULTS, "hero");
-  const stats = [
-    { value: h.stat1Value, label: h.stat1Label },
-    { value: h.stat2Value, label: h.stat2Label },
-    { value: h.stat3Value, label: h.stat3Label },
-  ];
-  const nameChars = h.name.split("");
+function MagneticLink({ href, className, children }: { href: string; className: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const sx = useSpring(x, { stiffness: 200, damping: 15 });
+  const sy = useSpring(y, { stiffness: 200, damping: 15 });
 
   return (
-    <section className="relative min-h-screen flex flex-col justify-center px-6 md:px-16 pt-28 pb-20 max-w-6xl mx-auto w-full">
-      {/* ambient orbs */}
-      <div className="pointer-events-none absolute -top-40 -left-40 w-[700px] h-[700px] rounded-full bg-lime-400/[0.05] blur-[160px]" />
-      <div className="pointer-events-none absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-lime-300/[0.035] blur-[130px]" />
+    <motion.a
+      ref={ref}
+      href={href}
+      style={{ x: sx, y: sy }}
+      onMouseMove={(e) => {
+        if (!ref.current) return;
+        const r = ref.current.getBoundingClientRect();
+        x.set((e.clientX - r.left - r.width / 2) * 0.3);
+        y.set((e.clientY - r.top - r.height / 2) * 0.3);
+      }}
+      onMouseLeave={() => { x.set(0); y.set(0); }}
+      whileTap={{ scale: 0.96 }}
+      className={className}
+    >
+      {children}
+    </motion.a>
+  );
+}
 
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12 lg:gap-20 items-center">
-        {/* ── Left column ── */}
-        <div className="space-y-8">
-          {/* status badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="inline-flex items-center gap-2 border border-lime-400/25 rounded-full px-4 py-1.5 text-xs font-mono text-lime-400 bg-lime-400/[0.07]"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-lime-400 glow-dot" />
-            Open to opportunities
-          </motion.div>
+const BIRTH = new Date("2007-07-31T00:00:00");
 
-          {/* name */}
-          <div>
-            <motion.p
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="text-neutral-500 text-sm font-mono tracking-[0.15em] uppercase mb-3"
-            >
-              Hi, I&apos;m
-            </motion.p>
-            <motion.h1
-              variants={charContainer}
-              initial="hidden"
-              animate="show"
-              className="flex flex-wrap text-7xl md:text-8xl font-bold tracking-tight leading-none"
-              aria-label={h.name}
-            >
-              {nameChars.map((char, i) => (
-                <motion.span
-                  key={i}
-                  variants={charItem}
-                  className="inline-block bg-gradient-to-b from-white via-neutral-100 to-neutral-400 bg-clip-text text-transparent"
-                >
-                  {char}
-                </motion.span>
-              ))}
-            </motion.h1>
+function useRealTimeAge() {
+  const calc = () => (Date.now() - BIRTH.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+  const [age, setAge] = useState(calc);
+  useEffect(() => {
+    const id = setInterval(() => setAge(calc()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return age;
+}
+
+function useUBClock() {
+  const fmt = () =>
+    new Date().toLocaleTimeString("en-US", {
+      timeZone: "Asia/Ulaanbaatar",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+  const [time, setTime] = useState(fmt);
+  useEffect(() => {
+    const id = setInterval(() => setTime(fmt()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return time;
+}
+
+const HERO_DEFAULTS = {
+  name: "", cyrillic: "", title: "", bio: "", tagline: "",
+  location: "", coords: "",
+  stat1Value: "", stat1Label: "", stat2Value: "", stat2Label: "",
+};
+
+const MARQUEE_ITEMS = [
+  "Next.js", "React", "TypeScript", "Node.js", "PostgreSQL",
+  "Prisma", "Tailwind CSS", "Framer Motion", "Cloudflare D1",
+  "Vercel", "Google Gemini", "Clerk", "Auth.js", "Figma", "REST APIs",
+];
+
+const LETTER_COLORS = ["#6d63ff", "#a09cff", "#8b81ff", "#7c72ff", "#6d63ff"];
+
+export default function Hero() {
+  const h = useAdminContent(HERO_DEFAULTS, "hero");
+  const age = useRealTimeAge();
+  const ubTime = useUBClock();
+  const doubled = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+  const letters = (h.name || "ANAND").split("");
+
+  // Easter egg: click name 5 times to scatter letters
+  const [clickCount, setClickCount] = useState(0);
+  const [scattered, setScattered] = useState(false);
+  const onNameClick = () => {
+    const next = clickCount + 1;
+    setClickCount(next);
+    if (next >= 5) {
+      setScattered(true);
+      setTimeout(() => { setScattered(false); setClickCount(0); }, 2200);
+    }
+  };
+
+  return (
+    <section className="relative min-h-screen flex flex-col overflow-hidden">
+
+      {/* Background orbs */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-[-15%] left-[5%] w-[65vw] h-[65vw] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(109,99,255,0.08) 0%, transparent 60%)" }} />
+        <div className="absolute bottom-[10%] right-[-5%] w-[35vw] h-[35vw] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(109,99,255,0.05) 0%, transparent 65%)" }} />
+      </div>
+
+      <div className="relative flex-1 flex flex-col max-w-[1400px] mx-auto w-full px-6 md:px-12 pt-28 pb-0">
+
+        {/* Top status bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mb-10 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <span className="relative flex items-center justify-center w-2 h-2">
+              <span className="absolute w-2 h-2 rounded-full bg-[#6d63ff] pulse-dot" />
+              <span className="w-2 h-2 rounded-full bg-[#6d63ff]" />
+            </span>
+            <span className="font-mono text-[11px] text-[#56545e] tracking-[0.18em] uppercase">
+              Open to opportunities
+            </span>
           </div>
 
-          {/* subtitle */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-            className="space-y-1.5"
-          >
-            <p className="text-xl font-semibold text-neutral-200">{h.title}</p>
-            <p className="font-mono text-sm text-lime-400/80 tracking-wide">{h.tagline}</p>
-          </motion.div>
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#67e8f9]/20 bg-[#67e8f9]/[0.04]">
+            <span className="text-[#67e8f9] text-[9px] leading-none">◆</span>
+            <span className="font-mono text-[10px] text-[#67e8f9] tracking-[0.18em] uppercase">Diamond</span>
+          </div>
 
-          {/* bio */}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="flex items-center gap-2 font-mono text-[11px]">
+              <span className="text-[#1e1c28]">🇲🇳</span>
+              <span className="tabular-nums text-[#3a3848]">{ubTime}</span>
+              <span className="text-[#1e1c28]">UB</span>
+            </div>
+            <kbd className="font-mono text-[9px] text-[#2e2c38] border border-white/[0.06] rounded px-1.5 py-0.5 tracking-wider">⌘K</kbd>
+          </div>
+        </motion.div>
+
+        {/* Cyrillic byline above name — Mongolian identity */}
+        {h.cyrillic && (
           <motion.p
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.95 }}
-            className="max-w-lg text-neutral-400 text-sm leading-relaxed"
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="font-mono text-[11px] text-[#56545e] tracking-[0.35em] mb-3 uppercase"
           >
-            {h.bio}
+            <span className="text-[#6d63ff]">◆</span>&nbsp;&nbsp;{h.cyrillic} · {h.coords || "47.9°N 106.9°E"}
           </motion.p>
+        )}
 
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1.05 }}
-            className="flex flex-wrap gap-3"
+        {/* Giant interactive name */}
+        <div className="overflow-hidden mb-8">
+          <motion.h1
+            initial={{ clipPath: "inset(100% 0 0 0)" }}
+            animate={{ clipPath: "inset(0% 0 0 0)" }}
+            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            className="font-bold tracking-tighter leading-[0.85] flex flex-wrap cursor-pointer select-none"
+            style={{ fontSize: "clamp(5rem, 16vw, 19rem)" }}
+            onClick={onNameClick}
           >
-            <motion.a
-              href="#work"
-              whileHover={{ scale: 1.04, y: -1 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.2 }}
-              className="px-6 py-2.5 rounded-full bg-lime-400 text-black text-sm font-bold hover:bg-lime-300 transition-colors shadow-[0_0_30px_rgba(163,230,53,0.25)]"
-            >
-              View Work
-            </motion.a>
-            <motion.a
-              href="#contact"
-              whileHover={{ scale: 1.04, y: -1 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.2 }}
-              className="px-6 py-2.5 rounded-full border border-white/10 hover:border-white/20 text-sm text-neutral-300 hover:text-white transition-all bg-white/[0.03] hover:bg-white/[0.06]"
-            >
-              Let&apos;s Talk
-            </motion.a>
-            <motion.a
-              href="/resume.pdf"
-              download
-              whileHover={{ scale: 1.04, y: -1 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.2 }}
-              className="px-6 py-2.5 rounded-full border border-white/10 hover:border-white/20 text-sm text-neutral-500 hover:text-neutral-300 transition-all flex items-center gap-2 bg-white/[0.02] hover:bg-white/[0.05]"
-            >
-              Resume
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M8 12l4 4m0 0l4-4m-4 4V4" />
-              </svg>
-            </motion.a>
-          </motion.div>
-
-          {/* stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1.15 }}
-            className="flex flex-wrap gap-3"
-          >
-            {stats.map((s) => (
-              <motion.div
-                key={s.label}
-                whileHover={{ y: -3, scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-                className="border border-white/[0.07] hover:border-lime-400/20 rounded-xl px-5 py-3.5 text-center bg-white/[0.03] hover:bg-white/[0.05] transition-all cursor-default backdrop-blur-sm"
+            {letters.map((char, i) => (
+              <motion.span
+                key={i}
+                className="inline-block"
+                animate={scattered ? {
+                  y: (Math.random() - 0.5) * 220,
+                  x: (Math.random() - 0.5) * 180,
+                  rotate: (Math.random() - 0.5) * 90,
+                  color: LETTER_COLORS[i % LETTER_COLORS.length],
+                } : {
+                  y: 0, x: 0, rotate: 0, color: "#eceae3",
+                }}
+                transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                whileHover={scattered ? {} : {
+                  y: -12,
+                  color: LETTER_COLORS[i % LETTER_COLORS.length],
+                  transition: { type: "spring", stiffness: 600, damping: 18 },
+                }}
               >
-                <p className="text-white font-bold text-xl">{s.value}</p>
-                <p className="text-neutral-500 text-xs mt-0.5 font-mono tracking-wide">{s.label}</p>
-              </motion.div>
+                {char === " " ? " " : char}
+              </motion.span>
             ))}
-          </motion.div>
+          </motion.h1>
+          <AnimatePresence>
+            {scattered && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="font-mono text-[10px] text-[#6d63ff] tracking-[0.3em] uppercase mt-4"
+              >
+                ⚠ you found it. nice.
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* ── Right column — profile card ── */}
+        {/* Tagline — punchy hot take */}
+        {h.tagline && (
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="text-lg md:text-xl text-[#a09cff] italic mb-8 max-w-[40ch]"
+            style={{ fontFamily: "serif" }}
+          >
+            &ldquo;{h.tagline}&rdquo;
+          </motion.p>
+        )}
+
+        {/* Info row */}
         <motion.div
-          initial={{ opacity: 0, x: 20, y: 10 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="hidden lg:block"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-8 md:gap-14 items-start border-t border-white/[0.06] pt-8 mb-16"
         >
-          <div className="relative border border-white/[0.08] rounded-3xl overflow-hidden bg-white/[0.03] backdrop-blur-sm p-6 space-y-5">
-            <div className="pointer-events-none absolute top-0 right-0 w-48 h-48 bg-lime-400/[0.08] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-
-            {/* photo */}
-            <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white/[0.04]">
-              {hasPhoto ? (
-                <Image
-                  src="/profile.jpg"
-                  alt="Anand"
-                  fill
-                  className="object-cover"
-                  onError={() => setHasPhoto(false)}
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-lime-400/20 via-lime-400/5 to-transparent flex items-center justify-center">
-                  <span className="text-6xl font-bold text-lime-400/20 select-none">{h.name[0]}</span>
-                </div>
-              )}
+          <div className="space-y-4">
+            <p className="text-[15px] text-[#a8a5ad] leading-[1.75] max-w-[44ch]">{h.bio}</p>
+            <div className="flex flex-wrap gap-x-5 gap-y-1.5 items-center">
+              <span className="font-mono text-xs text-[#eceae3]">{h.title}</span>
+              <span className="text-[#2e2c38] text-xs">·</span>
+              <span className="font-mono text-xs text-[#56545e]">{h.location || "Улаанбаатар"}, MN</span>
+              <span className="text-[#2e2c38] text-xs">·</span>
+              <span className="font-mono text-xs text-[#56545e] tabular-nums">
+                {age.toFixed(1)} yrs
+              </span>
             </div>
+          </div>
 
-            <div>
-              <p className="text-white font-bold text-lg">{h.name}</p>
-              <p className="text-neutral-400 text-sm font-mono">{h.title}</p>
-            </div>
+          <div className="flex md:flex-col gap-8 md:gap-6 items-start">
+            {[
+              { val: h.stat1Value, label: h.stat1Label },
+              { val: h.stat2Value, label: h.stat2Label },
+            ].filter(s => s.val).map(s => (
+              <div key={s.label} className="text-center md:text-right">
+                <p className="text-3xl font-bold text-[#eceae3] leading-none">{s.val}</p>
+                <p className="font-mono text-[10px] text-[#56545e] mt-1 tracking-wider uppercase">{s.label}</p>
+              </div>
+            ))}
+          </div>
 
-            <div className="flex items-center gap-2 text-xs text-neutral-600 font-mono">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              {h.location}
-            </div>
-
-            <div className="flex items-center gap-2 border border-lime-400/20 rounded-full px-3 py-1.5 text-xs font-mono text-lime-400 bg-lime-400/[0.06] w-fit">
-              <span className="w-1.5 h-1.5 rounded-full bg-lime-400 glow-dot" />
-              Available for work
-            </div>
-
-            <div className="flex flex-wrap gap-1.5">
-              {techTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/[0.08] text-neutral-400 font-mono"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+          <div className="flex md:flex-col gap-3 items-start md:items-end">
+            <MagneticLink
+              href="#work"
+              className="font-mono text-xs text-white bg-[#6d63ff] rounded-full px-7 py-3.5 font-semibold shadow-[0_0_30px_rgba(109,99,255,0.4)] hover:shadow-[0_0_40px_rgba(109,99,255,0.6)] transition-shadow duration-300"
+            >
+              View Work →
+            </MagneticLink>
+            <MagneticLink
+              href="#contact"
+              className="font-mono text-xs text-[#56545e] border border-white/[0.08] rounded-full px-7 py-3.5 hover:text-[#eceae3] hover:border-white/[0.18] transition-all duration-200"
+            >
+              Let&apos;s Talk
+            </MagneticLink>
           </div>
         </motion.div>
       </div>
 
-      {/* scroll hint */}
+      {/* Skill marquee */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2.2, duration: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5"
+        transition={{ duration: 1, delay: 1.1 }}
+        className="relative overflow-hidden border-t border-white/[0.05] py-4 bg-white/[0.01]"
       >
-        <span className="text-neutral-700 text-[10px] font-mono tracking-[0.2em]">scroll</span>
-        <motion.div
-          animate={{ y: [0, 7, 0] }}
-          transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-          className="w-px h-7 bg-gradient-to-b from-neutral-600 to-transparent"
-        />
+        <div className="flex marquee-track">
+          {doubled.map((item, i) => (
+            <div key={i} className="flex items-center gap-6 shrink-0 px-6">
+              <span className="font-mono text-xs text-[#2e2c38] whitespace-nowrap hover:text-[#6d63ff] transition-colors duration-300 cursor-default">
+                {item}
+              </span>
+              <span className="text-[#1a1828] text-[8px]">◆</span>
+            </div>
+          ))}
+        </div>
       </motion.div>
     </section>
   );
