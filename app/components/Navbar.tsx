@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import WallpaperPicker from "./WallpaperPicker";
 
 const links = [
   { label: "Now", href: "#now" },
@@ -51,13 +52,16 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <a
-          href="#contact"
-          className="relative font-mono text-xs text-[#6d63ff] border border-[#6d63ff]/40 rounded-full px-5 py-2.5 overflow-hidden group transition-all duration-300 hover:border-[#6d63ff] hover:shadow-[0_0_20px_rgba(109,99,255,0.25)]"
-        >
-          <span className="relative z-10 group-hover:text-white transition-colors duration-300">Hire me →</span>
-          <span className="absolute inset-0 bg-[#6d63ff] translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full" />
-        </a>
+        <div className="flex items-center gap-5">
+          <WallpaperPicker />
+          <a
+            href="#contact"
+            className="relative font-mono text-xs text-[#6d63ff] border border-[#6d63ff]/40 rounded-full px-5 py-2.5 overflow-hidden group transition-all duration-300 hover:border-[#6d63ff] hover:shadow-[0_0_20px_rgba(109,99,255,0.25)]"
+          >
+            <span className="relative z-10 group-hover:text-white transition-colors duration-300">Hire me →</span>
+            <span className="absolute inset-0 bg-[#6d63ff] translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full" />
+          </a>
+        </div>
       </div>
     </motion.header>
   );

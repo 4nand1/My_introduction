@@ -15,7 +15,7 @@ export default function Footer() {
           </span>
         </div>
 
-        <nav className="flex flex-wrap gap-5">
+        <nav className="flex flex-wrap gap-5 items-center">
           {[["#now","Now"],["#work","Work"],["#stack","Stack"],["#journey","Journey"],["#contact","Contact"]].map(([href, label]) => (
             <a
               key={href}
