@@ -74,9 +74,9 @@ const skillsData = {
 const timelineData = { events: [] };
 
 const nowData = {
-  building: "A new side project — currently in early prototyping.",
-  playing:  "Competitive ranked play — Diamond tier.",
-  learning: "Going deeper on database design and system architecture.",
+  building: "My personal portfolio site.",
+  playing:  "Taking a break from gaming for now — I've played competitive ranked games.",
+  learning: "Improving my English.",
   reading:  "Currently between books.",
   updated:  "2026-05-25",
 };

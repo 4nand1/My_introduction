@@ -6,7 +6,6 @@ import Stack from "./components/Stack";
 import Journey from "./components/Journey";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
-import Memory from "./components/Memory";
 import CommandPalette from "./components/CommandPalette";
 import EasterEggs from "./components/EasterEggs";
 
@@ -16,7 +15,6 @@ export default function Home() {
       <CommandPalette />
       <EasterEggs />
       <Navbar />
-      <Memory />
       <Hero />
       <Now />
       <Work />

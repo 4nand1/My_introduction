@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import WallpaperPicker from "./WallpaperPicker";
+import Memory from "./Memory";
 
 const links = [
   { label: "Now", href: "#now" },
@@ -14,6 +15,7 @@ const links = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [memoryOpen, setMemoryOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -22,6 +24,7 @@ export default function Navbar() {
   }, []);
 
   return (
+    <>
     <motion.header
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -54,6 +57,18 @@ export default function Navbar() {
 
         <div className="flex items-center gap-5">
           <WallpaperPicker />
+          <button
+            onClick={() => setMemoryOpen(true)}
+            className="font-mono text-[11px] text-[#56545e] hover:text-[#eceae3] transition-colors duration-300 tracking-wider hidden md:block"
+          >
+            Memories ↗
+          </button>
+          <a
+            href="/admin"
+            className="font-mono text-[11px] text-[#56545e] hover:text-[#eceae3] transition-colors duration-300 tracking-wider hidden md:block"
+          >
+            Admin
+          </a>
           <a
             href="#contact"
             className="relative font-mono text-xs text-[#6d63ff] border border-[#6d63ff]/40 rounded-full px-5 py-2.5 overflow-hidden group transition-all duration-300 hover:border-[#6d63ff] hover:shadow-[0_0_20px_rgba(109,99,255,0.25)]"
@@ -64,5 +79,8 @@ export default function Navbar() {
         </div>
       </div>
     </motion.header>
+
+    <Memory open={memoryOpen} onClose={() => setMemoryOpen(false)} />
+    </>
   );
 }

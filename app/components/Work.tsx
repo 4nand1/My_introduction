@@ -1,9 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { projects } from "../data/projects";
-import { useAdminContent } from "../hooks/useAdminContent";
 
 function TiltRow({ children, disabled }: { children: React.ReactNode; disabled: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -36,9 +35,20 @@ type AnyProject = {
 
 export default function Work() {
   const [selected, setSelected] = useState<number | null>(null);
-  const adminData = useAdminContent({ projects: projects as AnyProject[] }, "projects") as { projects?: AnyProject[] };
+  const [dbProjects, setDbProjects] = useState<AnyProject[] | null>(null);
 
-  const items = (adminData?.projects ?? projects as AnyProject[]).map((p) => ({
+  useEffect(() => {
+    fetch("/api/admin", { cache: "no-store" })
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data.projects) && data.projects.length > 0) {
+          setDbProjects(data.projects);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const items = (dbProjects ?? projects as AnyProject[]).map((p) => ({
     ...p,
     tags: typeof p.tags === "string"
       ? p.tags.split(",").map((t) => t.trim()).filter(Boolean)

@@ -86,7 +86,7 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<{ name: string; url: string }[]>([]);
   const [captions, setCaptions] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -113,6 +113,7 @@ export default function AdminPage() {
   const loadPhotos = () => {
     fetch("/api/admin/photos").then(r => r.json()).then(d => setPhotos(d.files || []));
   };
+
 
   const loadMessages = () => {
     fetch("/api/admin/messages", { headers: { "x-admin-password": password } })
@@ -190,11 +191,11 @@ export default function AdminPage() {
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  const handleDeletePhoto = async (filename: string) => {
+  const handleDeletePhoto = async (url: string) => {
     await fetch("/api/admin/photos", {
       method: "DELETE",
       headers: { "Content-Type": "application/json", "x-admin-password": password },
-      body: JSON.stringify({ filename }),
+      body: JSON.stringify({ url }),
     });
     loadPhotos();
   };
@@ -562,24 +563,24 @@ export default function AdminPage() {
 
                     {photos.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {photos.map((file) => (
-                          <div key={file} className="group rounded-xl overflow-hidden border border-white/[0.07] bg-[#0d0d17]">
+                        {photos.map((photo) => (
+                          <div key={photo.url} className="group rounded-xl overflow-hidden border border-white/[0.07] bg-[#0d0d17]">
                             <div className="relative aspect-square">
-                              <Image src={`/memories/${file}`} alt={file} fill className="object-cover" />
+                              <Image src={photo.url} alt={photo.name} fill className="object-cover" />
                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                <button onClick={() => handleDeletePhoto(file)}
+                                <button onClick={() => handleDeletePhoto(photo.url)}
                                   className="font-mono text-[11px] text-rose-400 border border-rose-400/40 px-4 py-1.5 rounded-full hover:bg-rose-400/10 transition-colors tracking-wider">
                                   delete
                                 </button>
                               </div>
-                              <span className="absolute bottom-1.5 left-2 font-mono text-[9px] text-[#eceae3]/50 bg-black/50 px-1.5 py-0.5 rounded tracking-wider">{file}</span>
+                              <span className="absolute bottom-1.5 left-2 font-mono text-[9px] text-[#eceae3]/50 bg-black/50 px-1.5 py-0.5 rounded tracking-wider">{photo.name}</span>
                             </div>
                             <div className="px-2 py-2">
                               <input
                                 type="text"
                                 placeholder="add a caption..."
-                                value={captions[file] || ""}
-                                onChange={e => setCaptions(prev => ({ ...prev, [file]: e.target.value }))}
+                                value={captions[photo.name] || ""}
+                                onChange={e => setCaptions(prev => ({ ...prev, [photo.name]: e.target.value }))}
                                 className="w-full bg-transparent border border-white/[0.05] focus:border-[#6d63ff]/30 rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-[#a8a5ad] placeholder:text-[#2e2c38] focus:outline-none transition-colors"
                               />
                             </div>

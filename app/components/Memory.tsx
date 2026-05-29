@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
-const PHOTO_COUNT = 20;
-
 function PhotoCard({ src, index, caption }: { src: string; index: number; caption?: string }) {
   const [visible, setVisible] = useState(true);
   if (!visible) return null;
@@ -36,30 +34,23 @@ function PhotoCard({ src, index, caption }: { src: string; index: number; captio
   );
 }
 
-export default function Memory() {
-  const [open, setOpen] = useState(false);
+export default function Memory({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [captions, setCaptions] = useState<Record<string, string>>({});
-  const photos = Array.from({ length: PHOTO_COUNT }, (_, i) => i + 1);
+  const [photos, setPhotos] = useState<{ name: string; url: string }[]>([]);
 
   useEffect(() => {
     fetch("/api/admin", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => { if (data.memoryCaptions) setCaptions(data.memoryCaptions); })
       .catch(() => {});
+    fetch("/api/admin/photos", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => { if (data.files) setPhotos(data.files); })
+      .catch(() => {});
   }, []);
 
   return (
     <>
-      <motion.button
-        onClick={() => setOpen(true)}
-        initial={{ opacity: 0, x: 10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 1.2 }}
-        className="fixed top-4 right-[140px] z-50 font-mono text-[11px] text-[#505050] hover:text-[#e8e8e6] transition-colors tracking-wider"
-      >
-        Memories ↗
-      </motion.button>
-
       <AnimatePresence>
         {open && (
           <motion.div
@@ -75,7 +66,7 @@ export default function Memory() {
                 <h2 className="text-xl font-bold text-[#e8e8e6] mt-0.5">Life in frames.</h2>
               </div>
               <button
-                onClick={() => setOpen(false)}
+                onClick={onClose}
                 className="font-mono text-xs text-[#505050] hover:text-[#e8e8e6] transition-colors border border-[#1c1c1c] px-4 py-2"
               >
                 Close ×
@@ -84,18 +75,20 @@ export default function Memory() {
 
             <div className="px-6 md:px-14 py-8">
               <div style={{ columns: "3 140px", columnGap: "8px" }}>
-                {photos.map((n, i) => (
+                {photos.length === 0 && (
+                  <p className="text-center font-mono text-[11px] text-[#2a2a2a] col-span-full py-16 tracking-wider">
+                    No photos yet — upload them in /admin
+                  </p>
+                )}
+                {photos.map((p, i) => (
                   <PhotoCard
-                    key={n}
-                    src={`/memories/${n}.jpg`}
+                    key={p.url}
+                    src={p.url}
                     index={i}
-                    caption={captions[`${n}.jpg`]}
+                    caption={captions[p.name]}
                   />
                 ))}
               </div>
-              <p className="text-center font-mono text-[11px] text-[#2a2a2a] mt-8 tracking-wider">
-                Add photos to /public/memories/ named 1.jpg, 2.jpg ...
-              </p>
             </div>
           </motion.div>
         )}
